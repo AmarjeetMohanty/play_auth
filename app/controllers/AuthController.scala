@@ -39,6 +39,10 @@ class AuthController @Inject()(protected val dbConfigProvider: DatabaseConfigPro
       credentials => {
         db.run(Users.users.filter(_.username === credentials.username).result.headOption).map {
           case Some(user) if BCrypt.checkpw(credentials.password, user.password) =>
+           System.out.println("user.password: "+user.password)
+            System.out.println("credentials.password: "+credentials.password)
+            //print username
+            System.out.println("user.username: "+user.username)
             val token = JwtJson.encode(Json.obj("username" -> user.username), "secretKey", JwtAlgorithm.HS256)
             Ok(Json.obj("token" -> token))
           case _ => Unauthorized(Json.obj("status" -> "error", "message" -> "Invalid credentials"))
@@ -51,9 +55,17 @@ class AuthController @Inject()(protected val dbConfigProvider: DatabaseConfigPro
 
   def protectedEndpoint = Action.async { request =>
   request.headers.get("Authorization").flatMap { token =>
-    JwtJson.decodeJson(token, "secretKey", Seq(JwtAlgorithm.HS256)).toOption
+    // Print the received token
+    //remove initila Bearer from token
+    val tokenClear = token.substring(7)
+    System.out.println("token: "+tokenClear)
+    println(JwtJson.decodeJson(tokenClear,"secretKey",Seq(JwtAlgorithm.HS256)))
+    JwtJson.decodeJson(tokenClear, "secretKey", Seq(JwtAlgorithm.HS256)).toOption
+
   } match {
     case Some(json) =>
+      // Print the decoded token
+      println(s"Decoded token: $json")
       // Token is valid, proceed with the request
       Future.successful(Ok(Json.obj("status" -> "success", "message" -> "Access granted")))
     case None =>

@@ -48,4 +48,17 @@ class AuthController @Inject()(protected val dbConfigProvider: DatabaseConfigPro
       }
     )
   }
+
+  def protectedEndpoint = Action.async { request =>
+  request.headers.get("Authorization").flatMap { token =>
+    JwtJson.decodeJson(token, "secretKey", Seq(JwtAlgorithm.HS256)).toOption
+  } match {
+    case Some(json) =>
+      // Token is valid, proceed with the request
+      Future.successful(Ok(Json.obj("status" -> "success", "message" -> "Access granted")))
+    case None =>
+      // Token is invalid or missing
+      Future.successful(Unauthorized(Json.obj("status" -> "error", "message" -> "Invalid token")))
+  }
+}
 }

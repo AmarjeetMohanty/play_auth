@@ -17,3 +17,4 @@ GET /checkDatabaseConnection controllers.DatabaseController.testConnection
 POST /register controllers.AuthController.register
 POST /login controllers.AuthController.login
 GET /protectedEndpoint controllers.AuthController.protectedEndpoint
+POST /refresh controllers.AuthController.refreshToken
